@@ -59,9 +59,6 @@ updateModel getOrder setOrder msg model =
             in
                 { model | targets = newTargets }
 
-        AddHandler _ ->
-            model
-
 
 updateCmd : Msg a -> Model a -> Cmd (Msg a)
 updateCmd msg model =

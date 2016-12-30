@@ -6,7 +6,6 @@ type Msg data
     | DragEnter String
     | Drop String
     | DragOver String
-    | AddHandler Bool
     | AddTarget (Target data)
 
 

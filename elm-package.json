@@ -1,6 +1,6 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
+    "summary": "Elm sortable by drag and drop library",
     "repository": "https://github.com/kyasu1/elm-dnd.git",
     "license": "BSD3",
     "source-directories": [
