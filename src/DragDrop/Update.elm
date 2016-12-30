@@ -1,18 +1,6 @@
-port module DragDrop.Update exposing (..)
+module DragDrop.Update exposing (update)
 
 import DragDrop.Model exposing (..)
-
-
-port addEventListener : String -> Cmd msg
-
-
-initialCmd : List String -> Cmd (Msg a)
-initialCmd ids =
-    let
-        listeners =
-            (List.map addEventListener ids)
-    in
-        Cmd.batch listeners
 
 
 update : (Maybe a -> Int) -> (Int -> Int -> a -> a) -> Msg a -> Model a -> ( Model a, Cmd (Msg a) )
@@ -78,8 +66,5 @@ updateModel getOrder setOrder msg model =
 updateCmd : Msg a -> Model a -> Cmd (Msg a)
 updateCmd msg model =
     case msg of
-        AddTarget target ->
-            addEventListener target.id
-
         _ ->
             Cmd.none

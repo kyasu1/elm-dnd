@@ -3,7 +3,7 @@ module Main exposing (..)
 import Html
 import DragDrop.Model exposing (Target, Model, Msg, initialModel)
 import ImageView exposing (view)
-import DragDrop.Update exposing (update, initialCmd)
+import DragDrop.Update exposing (update)
 import Model exposing (Image, getOrder, setOrder)
 
 
@@ -25,7 +25,6 @@ images =
 main : Program Never (Model Image) (Msg Image)
 main =
     Html.program
-        --        { init = ( initialModel images, initialCmd <| List.map (\target -> target.id) images )
         { init = ( initialModel images, Cmd.none )
         , view = view
         , update = update getOrder setOrder
