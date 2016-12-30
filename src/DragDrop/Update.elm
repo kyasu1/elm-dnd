@@ -3,17 +3,17 @@ module DragDrop.Update exposing (update)
 import DragDrop.Model exposing (..)
 
 
-update : (Maybe a -> Int) -> (Int -> Int -> a -> a) -> Msg a -> Model a -> ( Model a, Cmd (Msg a) )
+update : (Maybe a -> comparable) -> (comparable -> comparable -> a -> a) -> Msg a -> Model a -> ( Model a, Cmd (Msg a) )
 update getOrder setOrder msg model =
     ( updateModel getOrder setOrder msg model, updateCmd msg model )
 
 
-swapOrder : (Int -> Int -> a -> a) -> Int -> Int -> Target a -> Target a
+swapOrder : (comparable -> comparable -> a -> a) -> comparable -> comparable -> Target a -> Target a
 swapOrder setOrder left right target =
     { target | data = setOrder left right target.data }
 
 
-findOrder : (Maybe a -> Int) -> String -> List (Target a) -> Int
+findOrder : (Maybe a -> comparable) -> String -> List (Target a) -> comparable
 findOrder getOrder id targets =
     List.filter (\target -> target.id == id) targets
         |> List.head
@@ -21,7 +21,7 @@ findOrder getOrder id targets =
         |> getOrder
 
 
-updateModel : (Maybe a -> Int) -> (Int -> Int -> a -> a) -> Msg a -> Model a -> Model a
+updateModel : (Maybe a -> comparable) -> (comparable -> comparable -> a -> a) -> Msg a -> Model a -> Model a
 updateModel getOrder setOrder msg model =
     case msg of
         DragStart id ->
