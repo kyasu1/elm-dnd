@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charSet="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>elm-dnd example</title>
+    <meta name="description" content="Elm drag and drop example"/>
+    <meta name="author" content="Yasuyuki Komatsubara"/>
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div id="main"></div>
+    <script type="text/javascript" src="_compile/Main.elm"></script>
+    <script type="text/javascript">
+      var node = document.getElementById('main');
+      window.elm = Elm.Main.embed(node);
+    </script>
+  </body>
+
+</html>
