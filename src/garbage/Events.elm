@@ -1,4 +1,4 @@
-module DragDrop.Event exposing (..)
+module DragDrop.Events exposing (..)
 
 import Html exposing (Attribute)
 import Html.Events exposing (..)

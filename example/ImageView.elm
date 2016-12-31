@@ -2,8 +2,7 @@ module ImageView exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import DragDrop.Model exposing (..)
-import DragDrop.Event exposing (..)
+import DragDrop exposing (Msg(..), Model, DragState(..), Target, onDrag, onDragStart, onDragEnter, onDragOver, onDrop)
 import Model exposing (Image)
 
 

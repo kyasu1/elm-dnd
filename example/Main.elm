@@ -1,9 +1,8 @@
 module Main exposing (..)
 
 import Html
-import DragDrop.Model exposing (Target, Model, Msg, initialModel)
+import DragDrop exposing (Target, Model, Msg, initialModel, update)
 import ImageView exposing (view)
-import DragDrop.Update exposing (update)
 import Model exposing (Image, getOrder, setOrder)
 
 
