@@ -1,4 +1,4 @@
-module Model exposing (..)
+module Model exposing (Image, setOrder, getOrder)
 
 
 type alias Image =
@@ -8,21 +8,11 @@ type alias Image =
     }
 
 
-setOrder : Int -> Int -> Image -> Image
-setOrder left right image =
-    if image.order == left then
-        { image | order = right }
-    else if image.order == right then
-        { image | order = left }
-    else
-        image
+setOrder : Int -> Image -> Image
+setOrder order image =
+    { image | order = order }
 
 
-getOrder : Maybe Image -> Int
-getOrder data =
-    case data of
-        Just image ->
-            image.order
-
-        Nothing ->
-            0
+getOrder : Image -> Int
+getOrder image =
+    image.order

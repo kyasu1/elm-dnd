@@ -2,7 +2,7 @@ module ImageView exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import DragDrop exposing (Msg(..), Model, DragState(..), Target, onDrag, onDragStart, onDragEnter, onDragOver, onDrop)
+import DragDrop exposing (Msg(..), Model, onDrag, onDragStart, onDragEnter, onDragOver, onDrop)
 import Model exposing (Image)
 
 
@@ -16,7 +16,7 @@ viewTargets : Model Image -> Html (Msg Image)
 viewTargets model =
     let
         sorted =
-            List.sortBy (\target -> target.data.order) model.targets
+            List.sortBy (\target -> target.order) model.targets
     in
         div
             [ class "columns"
@@ -32,7 +32,7 @@ viewTargets model =
             ]
 
 
-viewTarget : Model Image -> Target Image -> Html (Msg Image)
+viewTarget : Model Image -> Image -> Html (Msg Image)
 viewTarget model target =
     let
         base =
@@ -41,20 +41,20 @@ viewTarget model target =
             ]
 
         style_ =
-            case model.state of
-                Dragging id ->
-                    if id == target.id then
+            case model.dragging of
+                Just dragged ->
+                    if dragged == target then
                         [ ( "opacity", "0.4" ) ]
                     else
                         []
 
-                Normal ->
+                Nothing ->
                     []
 
         class_ =
             case model.hovering of
-                Just id ->
-                    if id == target.id then
+                Just hovered ->
+                    if hovered == target then
                         "column over"
                     else
                         "column"
@@ -66,13 +66,12 @@ viewTarget model target =
             [ img
                 [ class class_
                 , draggable "true"
-                , id target.id
-                , onDragStart (DragStart target.id)
-                , onDrop (Drop target.id)
-                , onDragOver (DragOver target.id)
-                , onDragEnter (DragEnter target.id)
+                , onDragStart (DragStart target)
+                , onDrop (Drop target)
+                , onDragOver (DragOver target)
+                , onDragEnter (DragEnter target)
                 , style style_
-                , src target.data.src
+                , src target.src
                 , width 100
                 , height 100
                 ]

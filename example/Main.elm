@@ -1,24 +1,29 @@
 module Main exposing (..)
 
 import Html
-import DragDrop exposing (Target, Model, Msg, initialModel, update)
+import DragDrop exposing (Model, Msg, initialModel, update, Config)
 import ImageView exposing (view)
 import Model exposing (Image, getOrder, setOrder)
 
 
-images : List (Target Image)
+images : List Image
 images =
-    [ Target "image-01" (Image "0" 0 "/images/a.png")
-    , Target "image-02" (Image "1" 1 "/images/b.png")
-    , Target "image-03" (Image "2" 2 "/images/c.png")
-    , Target "image-04" (Image "3" 3 "/images/d.png")
-    , Target "image-05" (Image "4" 4 "/images/e.png")
-    , Target "image-06" (Image "5" 5 "/images/f.png")
-    , Target "image-07" (Image "6" 6 "/images/g.png")
-    , Target "image-08" (Image "7" 7 "/images/h.png")
-    , Target "image-09" (Image "8" 8 "/images/i.png")
-    , Target "image-10" (Image "9" 9 "/images/j.png")
+    [ Image "0" 0 "/images/a.png"
+    , Image "1" 1 "/images/b.png"
+    , Image "2" 2 "/images/c.png"
+    , Image "3" 3 "/images/d.png"
+    , Image "4" 4 "/images/e.png"
+    , Image "5" 5 "/images/f.png"
+    , Image "6" 6 "/images/g.png"
+    , Image "7" 7 "/images/h.png"
+    , Image "8" 8 "/images/i.png"
+    , Image "9" 9 "/images/j.png"
     ]
+
+
+config : Config Int Image
+config =
+    Config setOrder getOrder
 
 
 main : Program Never (Model Image) (Msg Image)
@@ -26,6 +31,6 @@ main =
     Html.program
         { init = ( initialModel images, Cmd.none )
         , view = view
-        , update = update getOrder setOrder
+        , update = update config
         , subscriptions = \_ -> Sub.none
         }

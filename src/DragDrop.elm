@@ -1,9 +1,8 @@
 module DragDrop
     exposing
         ( Msg(..)
-        , DragState(..)
         , Model
-        , Target
+        , Config
         , initialModel
         , update
         , onDrag
@@ -15,7 +14,7 @@ module DragDrop
 
 {-|
 Allow ordering multiple items by draggin and drop.
-@docs Msg, DragState, Model, Target, initialModel, update
+@docs Msg,  Model, Config, initialModel, update
 @docs onDrag, onDragStart, onDragEnter, onDragOver, onDrop
 -}
 
@@ -27,42 +26,39 @@ import Json.Decode as Decode
 {-|
 Msg to hold the dragging state
 -}
-type Msg data
-    = DragStart String
-    | DragEnter String
-    | Drop String
-    | DragOver String
-    | AddTarget (Target data)
-
-
-type DragState
-    = Normal
-    | Dragging String
+type Msg a
+    = DragStart a
+    | DragEnter a
+    | Drop a
+    | DragOver a
+    | AddTarget a
+    | UpdateTargets (List a)
+    | UpdateTarget a
 
 
 {-|
 
 -}
-type alias Model data =
-    { state : DragState
-    , hovering : Maybe String
-    , targets : List (Target data)
+type alias Model a =
+    { dragging : Maybe a
+    , hovering : Maybe a
+    , targets : List a
     }
 
 
 {-|
 -}
-type alias Target data =
-    { id : String
-    , data : data
+type alias Config comparable a =
+    { setOrder : comparable -> a -> a
+    , getOrder : a -> comparable
     }
 
 
 {-|
 -}
-initialModel : List (Target a) -> Model a
+initialModel : List a -> Model a
 initialModel targets =
-    Model Normal Nothing targets
+    Model Nothing Nothing targets
 
 
 {-|
@@ -70,68 +66,58 @@ initialModel targets =
    @doc getOrder (Maybe a -> comparable)
    @doc setOrder (comparable -> comparable -> a -> a)
 -}
-update : (Maybe a -> comparable) -> (comparable -> comparable -> a -> a) -> Msg a -> Model a -> ( Model a, Cmd (Msg a) )
-update getOrder setOrder msg model =
-    ( updateModel getOrder setOrder msg model, updateCmd msg model )
-
-
-swapOrder : (comparable -> comparable -> a -> a) -> comparable -> comparable -> Target a -> Target a
-swapOrder setOrder left right target =
-    { target | data = setOrder left right target.data }
-
-
-findOrder : (Maybe a -> comparable) -> String -> List (Target a) -> comparable
-findOrder getOrder id targets =
-    List.filter (\target -> target.id == id) targets
-        |> List.head
-        |> Maybe.map .data
-        |> getOrder
-
-
-updateModel : (Maybe a -> comparable) -> (comparable -> comparable -> a -> a) -> Msg a -> Model a -> Model a
-updateModel getOrder setOrder msg model =
+update : Config comparable a -> Msg a -> Model a -> ( Model a, Cmd (Msg a) )
+update config msg model =
     case msg of
-        DragStart id ->
-            { model | state = Dragging id }
+        DragStart a ->
+            { model | dragging = Just a } ! []
 
-        DragEnter id ->
-            { model | hovering = Just id }
+        DragEnter a ->
+            { model | hovering = Just a } ! []
 
-        DragOver id ->
-            model
+        DragOver a ->
+            model ! []
 
-        Drop droppedId ->
-            case model.state of
-                Dragging id ->
-                    let
-                        l =
-                            findOrder getOrder id model.targets
-
-                        r =
-                            findOrder getOrder droppedId model.targets
-                    in
-                        { model
-                            | state = Normal
-                            , hovering = Nothing
-                            , targets = List.map (swapOrder setOrder l r) model.targets
-                        }
+        Drop dropped ->
+            case model.dragging of
+                Just dragged ->
+                    { model | targets = List.map (swapOrder config dragged dropped) model.targets } ! []
 
                 _ ->
-                    model
+                    model ! []
+
+        UpdateTargets targets ->
+            { model | targets = targets } ! []
+
+        UpdateTarget target ->
+            model ! []
 
         AddTarget target ->
             let
                 newTargets =
                     List.append model.targets (target :: [])
             in
-                { model | targets = newTargets }
+                { model | targets = newTargets } ! []
 
 
-updateCmd : Msg a -> Model a -> Cmd (Msg a)
-updateCmd msg model =
-    case msg of
-        _ ->
-            Cmd.none
+swapOrder : Config comparable a -> a -> a -> a -> a
+swapOrder config dragged dropped target =
+    let
+        droppedOrder =
+            config.getOrder dropped
+
+        draggedOrder =
+            config.getOrder dragged
+
+        targetOrder =
+            config.getOrder target
+    in
+        if targetOrder == droppedOrder then
+            config.setOrder draggedOrder target
+        else if targetOrder == draggedOrder then
+            config.setOrder droppedOrder target
+        else
+            target
 
 
 
