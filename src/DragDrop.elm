@@ -10,12 +10,13 @@ module DragDrop
         , onDragEnter
         , onDragOver
         , onDrop
+        , onDragEnd
         )
 
 {-|
 Allow ordering multiple items by draggin and drop.
 @docs Msg,  Model, Config, initialModel, update
-@docs onDrag, onDragStart, onDragEnter, onDragOver, onDrop
+@docs onDrag, onDragStart, onDragEnter, onDragOver, onDrop, onDragEnd
 -}
 
 import Html exposing (Attribute)
@@ -30,6 +31,7 @@ type Msg a
     = DragStart a
     | DragEnter a
     | Drop a
+    | DragEnd a
     | DragOver a
     | AddTarget a
     | UpdateTargets (List a)
@@ -86,11 +88,14 @@ update config msg model =
                 _ ->
                     model ! []
 
+        DragEnd a ->
+            { model | dragging = Nothing, hovering = Nothing } ! []
+
         UpdateTargets targets ->
             { model | targets = targets } ! []
 
-        UpdateTarget target ->
-            model ! []
+        UpdateTarget selected ->
+            { model | targets = List.map (updateTarget config selected) model.targets } ! []
 
         AddTarget target ->
             let
@@ -116,6 +121,21 @@ swapOrder config dragged dropped target =
             config.setOrder draggedOrder target
         else if targetOrder == draggedOrder then
             config.setOrder droppedOrder target
+        else
+            target
+
+
+updateTarget : Config comparable a -> a -> a -> a
+updateTarget config selected target =
+    let
+        selectedOrder =
+            config.getOrder selected
+
+        targetOrder =
+            config.getOrder target
+    in
+        if selectedOrder == targetOrder then
+            selected
         else
             target
 
@@ -164,6 +184,14 @@ Handles drop dom event
 onDrop : msg -> Attribute msg
 onDrop msg =
     onPreventHelper "drop" msg
+
+
+{-|
+Handles dragEnd dom event
+-}
+onDragEnd : msg -> Attribute msg
+onDragEnd msg =
+    onDragHelper "dragend" msg
 
 
 {-|
