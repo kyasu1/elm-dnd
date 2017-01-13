@@ -1,25 +1,37 @@
 module DragDrop
     exposing
-        ( Msg(..)
-        , Model
-        , Config
-        , initialModel
+        ( view
+        , State
+        , initialState
+        , Config(Config)
+        , Msg
         , update
-        , onDrag
-        , onDragStart
-        , onDragEnter
-        , onDragOver
-        , onDrop
-        , onDragEnd
         )
 
 {-|
-Allow ordering multiple items by draggin and drop.
-@docs Msg,  Model, Config, initialModel, update
-@docs onDrag, onDragStart, onDragEnter, onDragOver, onDrop, onDragEnd
+This library helps you create sortable elements by drag and drop.
+Written by following *reusable views* API design described in
+[evancz/elm-sortable-table]: https://github.com/evancz/elm-sortable-table
+
+# View
+
+@docs view
+
+# Configuration
+
+@docs Config
+
+# State
+
+@docs State, initialState
+
+# Update
+
+@docs Msg, update
 -}
 
-import Html exposing (Attribute)
+import Html exposing (Html, Attribute)
+import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 
@@ -33,111 +45,136 @@ type Msg a
     | Drop a
     | DragEnd a
     | DragOver a
-    | AddTarget a
-    | UpdateTargets (List a)
-    | UpdateTarget a
 
 
-{-|
 
+-- STATE
+
+
+{-| Tracks dragging and hovering dom element.
 -}
-type alias Model a =
+type alias State a =
     { dragging : Maybe a
     , hovering : Maybe a
-    , targets : List a
     }
 
 
-{-|
+{-| Create a dragging state, no dom elmeent is selected at the beginning.
 -}
-type alias Config comparable a =
-    { setOrder : comparable -> a -> a
-    , getOrder : a -> comparable
+initialState : State a
+initialState =
+    State Nothing Nothing
+
+
+
+-- CONFIG
+
+
+{-| **Note:** The `Config` should *never* be held in your model.
+It should only appear in `view` and `update` code.
+-}
+type Config a msg
+    = Config
+        { onDrop : a -> a -> msg
+        , htmlTag : String
+        , attributes : a -> List ( String, String )
+        , toMsg : State a -> msg
+        }
+
+
+{-| Create the `Config` for your `view` and `update` function.
+
+    import DragDrop
+
+    type Msg = SetDragDropState (DragDrop.State Image) | DragDrop Image Image ...
+
+    config : DragDrop.Config Image Msg
+    config =
+      DragDrop.config
+        { onDrop = DragDrop
+        , htmlTag = "img"
+        , attributes = (\image -> [("src", image.src)])
+        , toMsg = SetDragDropState
+        }
+You provide the following infomation in you configuration:
+
+  - `onDrop` &mdash; call back Msg that is called when drop event fired.
+  - `htmlTag` &mdash; name of html tag to be draggable
+  - `attributes` &mdash; list of extra attributes for draggable element.
+  - `toMsg` &mdash; a way to send new dragDrop state to your app as message.
+-}
+config :
+    { onDrop : a -> a -> msg
+    , htmlTag : String
+    , attributes : a -> List ( String, String )
+    , toMsg : State a -> msg
     }
-
-
-{-|
--}
-initialModel : List a -> Model a
-initialModel targets =
-    Model Nothing Nothing targets
+    -> Config a msg
+config { onDrop, htmlTag, attributes, toMsg } =
+    Config
+        { onDrop = onDrop
+        , htmlTag = htmlTag
+        , attributes = attributes
+        , toMsg = toMsg
+        }
 
 
 {-|
    Update
-   @doc getOrder (Maybe a -> comparable)
-   @doc setOrder (comparable -> comparable -> a -> a)
 -}
-update : Config comparable a -> Msg a -> Model a -> ( Model a, Cmd (Msg a) )
-update config msg model =
+update : Config a msg -> Msg a -> State a -> ( State a, Maybe msg )
+update (Config { onDrop }) msg model =
     case msg of
-        DragStart a ->
-            { model | dragging = Just a } ! []
+        DragStart dragged ->
+            ( { model | dragging = Just dragged }, Nothing )
 
-        DragEnter a ->
-            { model | hovering = Just a } ! []
+        DragEnter hovered ->
+            ( { model | hovering = Just hovered }, Nothing )
 
-        DragOver a ->
-            model ! []
+        DragOver _ ->
+            ( model, Nothing )
 
         Drop dropped ->
             case model.dragging of
                 Just dragged ->
-                    { model | targets = List.map (swapOrder config dragged dropped) model.targets } ! []
+                    ( model, Just <| onDrop dragged dropped )
 
                 _ ->
-                    model ! []
+                    ( model, Nothing )
 
-        DragEnd a ->
-            { model | dragging = Nothing, hovering = Nothing } ! []
-
-        UpdateTargets targets ->
-            { model | targets = targets } ! []
-
-        UpdateTarget selected ->
-            { model | targets = List.map (updateTarget config selected) model.targets } ! []
-
-        AddTarget target ->
-            let
-                newTargets =
-                    List.append model.targets (target :: [])
-            in
-                { model | targets = newTargets } ! []
+        DragEnd _ ->
+            ( { model | dragging = Nothing, hovering = Nothing }, Nothing )
 
 
-swapOrder : Config comparable a -> a -> a -> a -> a
-swapOrder config dragged dropped target =
+
+-- VIEW
+
+
+{-| Take list of css styles and the model.
+-}
+view : Config a msg -> List ( String, String ) -> a -> Html (Msg a)
+view (Config { attributes, htmlTag }) style_ model =
     let
-        droppedOrder =
-            config.getOrder dropped
-
-        draggedOrder =
-            config.getOrder dragged
-
-        targetOrder =
-            config.getOrder target
+        attrs =
+            List.map attrHelper (attributes model)
     in
-        if targetOrder == droppedOrder then
-            config.setOrder draggedOrder target
-        else if targetOrder == draggedOrder then
-            config.setOrder droppedOrder target
-        else
-            target
+        Html.node htmlTag
+            (List.append
+                [ draggable "true"
+                , onDragStart (DragStart model)
+                , onDrop (Drop model)
+                , onDragOver (DragOver model)
+                , onDragEnter (DragEnter model)
+                , style style_
+                ]
+                attrs
+            )
+            []
 
 
-updateTarget : Config comparable a -> a -> a -> a
-updateTarget config selected target =
-    let
-        selectedOrder =
-            config.getOrder selected
-
-        targetOrder =
-            config.getOrder target
-    in
-        if selectedOrder == targetOrder then
-            selected
-        else
-            target
+attrHelper : ( String, String ) -> Attribute msg
+attrHelper ( attr, value ) =
+    Html.Attributes.attribute attr value
 
 
 
