@@ -117,13 +117,25 @@ imageView { dragDropState } target =
             , ( "border", "2px solid #FFF" )
             ]
 
+        draggedStyle =
+            [ ( "opacity", "0.4" ) ]
+
+        hoveredStyle =
+            [ ( "border", "2px dashed #000" ) ]
+
         dragDropStyle =
             case ( dragDropState.dragging, dragDropState.hovering ) of
                 ( Just dragged, Just hovered ) ->
                     if target == dragged then
-                        [ ( "opacity", "0.4" ) ]
+                        draggedStyle
                     else if target == hovered then
-                        [ ( "border", "2px dashed #000" ) ]
+                        hoveredStyle
+                    else
+                        []
+
+                ( Just dragged, Nothing ) ->
+                    if target == dragged then
+                        draggedStyle
                     else
                         []
 

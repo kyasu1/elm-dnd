@@ -42,6 +42,7 @@ Msg to hold the dragging state
 type Msg a
     = DragStart a
     | DragEnter a
+    | DragLeave a
     | Drop a
     | DragEnd a
     | DragOver a
@@ -127,6 +128,9 @@ update (Config { onDrop }) msg model =
         DragEnter hovered ->
             ( { model | hovering = Just hovered }, Nothing )
 
+        DragLeave _ ->
+            ( { model | hovering = Nothing }, Nothing )
+
         DragOver _ ->
             ( model, Nothing )
 
@@ -163,8 +167,12 @@ view (Config { attributes, htmlTag }) style_ data =
                 [ draggable "true"
                 , onDragStart (DragStart data)
                 , onDrop (Drop data)
-                , onDragOver (DragOver data)
+                  -- , onDragOver (DragOver data)
+                  -- a hack for preventing dragover events overwhelm update msg
+                  -- https://medium.com/elm-shorts/html5-drag-and-drop-in-elm-88d149d3558f#.ak3n9ymcc
+                , attribute "ondragover" "return false"
                 , onDragEnter (DragEnter data)
+                , onDragLeave (DragLeave data)
                 , onDragEnd (DragEnd data)
                 , style style_
                 ]
@@ -206,6 +214,13 @@ Handles dragover dom event
 onDragOver : msg -> Attribute msg
 onDragOver msg =
     onPreventHelper "dragover" msg
+
+
+{-| Hndles dragleave dom event
+-}
+onDragLeave : msg -> Attribute msg
+onDragLeave msg =
+    onDragHelper "dragleave" msg
 
 
 {-|
