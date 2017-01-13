@@ -84,11 +84,11 @@ swapOrder draggedOrder hoveredOrder image =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ viewTargets model ]
+        [ imageListView model ]
 
 
-viewTargets : Model -> Html Msg
-viewTargets model =
+imageListView : Model -> Html Msg
+imageListView model =
     let
         sorted =
             List.sortBy (\target -> target.order) model.images
@@ -101,18 +101,20 @@ viewTargets model =
                 ]
             ]
             [ div [ style [ ( "display", "flex" ) ] ]
-                (List.map (viewTarget model) <| List.take 5 sorted)
+                (List.map (imageView model) <| List.take 5 sorted)
             , div [ style [ ( "display", "flex" ) ] ]
-                (List.map (viewTarget model) <| List.drop 5 sorted)
+                (List.map (imageView model) <| List.drop 5 sorted)
             ]
 
 
-viewTarget : Model -> Image -> Html Msg
-viewTarget { dragDropState } target =
+imageView : Model -> Image -> Html Msg
+imageView { dragDropState } target =
     let
         base =
             [ ( "display", "flex" )
             , ( "flex-direction", "column" )
+            , ( "padding", "5px" )
+            , ( "border", "2px solid #FFF" )
             ]
 
         dragDropStyle =

@@ -22,7 +22,6 @@ config =
     , attributes = (\image -> [("src", image.src)])
     }
 ```
-
 You provide the following infomation in you configuration:
 
   - `onDrop` &mdash; send a Msg with your data of dragged and dropped when drop event fired.
@@ -37,7 +36,6 @@ type alias Model =
     , dragDropState : DragDrop.State Image
     }
 ```
-
 Your data is stored seprately from the library, you can provide any shape of your need.
 ```
 type alias Image =
@@ -46,16 +44,46 @@ type alias Image =
      , src : String
      }
 ```
-
 ### Update
 ```
 type Msg
     = DragDrop Image Image
-    | SetDragDropState (DragDrop.State Image)
     | DragDropMsg (DragDrop.Msg Image)
 ```    
   - `DragDrop` &mdash; called when drop event is fired, in the update you need to swap dragged and dropped elements in you model.
-  - `SetDragDropState` &mdash; called when
   - `DragDropMsg` &mdash; map child message from parent to child.
+
 ### View
-Under construction…
+```
+imageView : Model -> Image -> Html Msg
+imageView { dragDropState } target =
+    let
+        base =
+            [ ( "display", "flex" )
+            , ( "flex-direction", "column" )
+            , ( "padding", "5px" )
+            , ( "border", "2px solid #FFF" )
+            ]
+
+        dragDropStyle =
+            case ( dragDropState.dragging, dragDropState.hovering ) of
+                ( Just dragged, Just hovered ) ->
+                    if target == dragged then
+                        [ ( "opacity", "0.4" ) ]
+                    else if target == hovered then
+                        [ ( "border", "2px dashed #000" ) ]
+                    else
+                        []
+
+                _ ->
+                    []
+
+        style_ =
+            base ++ dragDropStyle
+    in
+        div [ style base ]
+            [ Html.map DragDropMsg (DragDrop.view config style_ target)
+            , div []
+                [ text <| "id : " ++ target.id ]
+            ]
+```

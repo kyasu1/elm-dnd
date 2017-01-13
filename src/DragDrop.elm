@@ -131,12 +131,16 @@ update (Config { onDrop }) msg model =
             ( model, Nothing )
 
         Drop dropped ->
-            case model.dragging of
-                Just dragged ->
-                    ( model, Just <| onDrop dragged dropped )
+            let
+                updated =
+                    { model | dragging = Nothing, hovering = Nothing }
+            in
+                case model.dragging of
+                    Just dragged ->
+                        ( updated, Just <| onDrop dragged dropped )
 
-                _ ->
-                    ( model, Nothing )
+                    _ ->
+                        ( updated, Nothing )
 
         DragEnd _ ->
             ( { model | dragging = Nothing, hovering = Nothing }, Nothing )
@@ -161,6 +165,7 @@ view (Config { attributes, htmlTag }) style_ data =
                 , onDrop (Drop data)
                 , onDragOver (DragOver data)
                 , onDragEnter (DragEnter data)
+                , onDragEnd (DragEnd data)
                 , style style_
                 ]
                 attrs
