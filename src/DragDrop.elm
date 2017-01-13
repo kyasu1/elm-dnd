@@ -153,18 +153,18 @@ update (Config { onDrop }) msg model =
 {-| Take list of css styles and the model.
 -}
 view : Config a msg -> List ( String, String ) -> a -> Html (Msg a)
-view (Config { attributes, htmlTag }) style_ model =
+view (Config { attributes, htmlTag }) style_ data =
     let
         attrs =
-            List.map attrHelper (attributes model)
+            List.map attrHelper (attributes data)
     in
         Html.node htmlTag
             (List.append
                 [ draggable "true"
-                , onDragStart (DragStart model)
-                , onDrop (Drop model)
-                , onDragOver (DragOver model)
-                , onDragEnter (DragEnter model)
+                , onDragStart (DragStart data)
+                , onDrop (Drop data)
+                , onDragOver (DragOver data)
+                , onDragEnter (DragEnter data)
                 , style style_
                 ]
                 attrs

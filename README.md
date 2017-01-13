@@ -1,15 +1,47 @@
 # Elm Drag and Drop Library
-The purpose of this library is providing a functionality that allow us to reorder multiple UI components by dragging and dropping.
+This library helps easily create a list of dom elements which can be sortable by drag and drop. The API design follows *reusable views* described in [evancz/elm-sortable-table]: https://github.com/evancz/elm-sortable-table.
 
 ## How to use
 Prepare a model which will be the content of the draggable target. Since this library does not care about what are contained, you can provide a model with any fields you want but including a field to compare the ordering. Also you need to supply two functions for the update function, the one is for setting the order, the other one is for getting the order from the Model. Finally you supply a View for your purpose.
 
-## Eample
+## Example
 <img width="808" alt="2016-12-31 0 19 08" src="https://cloud.githubusercontent.com/assets/890106/21567833/be6d2f28-cef2-11e6-82bf-471ba5af68a7.png">
 
-### Model
-As mentioned in the above, the model can include any fields but you need to supply a comparable field for the ordering. For example, in the next model, we define the `order : Int` but any comparable data type can be used.
+### Config
+Create the `Config` for your `view` and `update` function.
+```
+import DragDrop
 
+type Msg = SetDragDropState (DragDrop.State Image)
+         | DragDrop Image Image ...
+
+config : DragDrop.Config Image Msg
+config =
+  DragDrop.config
+    { onDrop = DragDrop
+    , htmlTag = "img"
+    , attributes = (\image -> [("src", image.src)])
+    , toMsg = SetDragDropState
+    }
+```
+
+You provide the following infomation in you configuration:
+
+  - `onDrop` &mdash; send a Msg with your data of dragged and dropped when drop event fired.
+  - `htmlTag` &mdash; name of html tag to be rendered, which will be draggable.
+  - `attributes` &mdash; list of extra attributes for the draggable element.
+  - `toMsg` &mdash; a way to send new dragDrop state to your app as message.
+
+### Model
+The model holds list of your data and `State` of DragDrop library.
+```
+type alias Model =
+    { images : List Image
+    , dragDropState : DragDrop.State Image
+    }
+```
+
+Your data is stored seprately from the library, you can provide any shape of your need.
 ```
 type alias Image =
      { id : String
@@ -19,15 +51,14 @@ type alias Image =
 ```
 
 ### Update
-The next function is used when reordering items in the library model. The first and second arguments are indexes of the items to be exchanged. The third and the return value is the model.
 ```
-setOrder : comparable -> comparable -> a -> a
-```
-
-And we need a function to extract the comparable value from the Model.
-```
-getOrder : Maybe a -> comparable
-```
-
+type Msg
+    = DragDrop Image Image
+    | SetDragDropState (DragDrop.State Image)
+    | DragDropMsg (DragDrop.Msg Image)
+```    
+  - `DragDrop` &mdash; called when drop event is fired, in the update you need to swap dragged and dropped elements in you model.
+  - `SetDragDropState` &mdash; called when 
+  - `DragDropMsg` &mdash; map child message from parent to child.
 ### View
 Under construction…
