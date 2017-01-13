@@ -39,7 +39,6 @@ initialModel =
 type Msg
     = DragDrop Image Image
     | DragDropMsg (DragDrop.Msg Image)
-    | SetDragDropState (DragDrop.State Image)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -66,9 +65,6 @@ update msg model =
 
                     Just updateMsg ->
                         update updateMsg newModel
-
-        SetDragDropState newState ->
-            { model | dragDropState = newState } ! []
 
 
 swapOrder : Int -> Int -> Image -> Image
@@ -148,7 +144,6 @@ config =
         { onDrop = DragDrop
         , htmlTag = "img"
         , attributes = attrHelper
-        , toMsg = SetDragDropState
         }
 
 

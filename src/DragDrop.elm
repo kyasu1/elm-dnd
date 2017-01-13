@@ -78,7 +78,6 @@ type Config a msg
         { onDrop : a -> a -> msg
         , htmlTag : String
         , attributes : a -> List ( String, String )
-        , toMsg : State a -> msg
         }
 
 
@@ -86,7 +85,7 @@ type Config a msg
 
     import DragDrop
 
-    type Msg = SetDragDropState (DragDrop.State Image) | DragDrop Image Image ...
+    type Msg = DragDrop Image Image | ...
 
     config : DragDrop.Config Image Msg
     config =
@@ -94,28 +93,25 @@ type Config a msg
         { onDrop = DragDrop
         , htmlTag = "img"
         , attributes = (\image -> [("src", image.src)])
-        , toMsg = SetDragDropState
         }
+
 You provide the following infomation in you configuration:
 
   - `onDrop` &mdash; call back Msg that is called when drop event fired.
   - `htmlTag` &mdash; name of html tag to be draggable
   - `attributes` &mdash; list of extra attributes for draggable element.
-  - `toMsg` &mdash; a way to send new dragDrop state to your app as message.
 -}
 config :
     { onDrop : a -> a -> msg
     , htmlTag : String
     , attributes : a -> List ( String, String )
-    , toMsg : State a -> msg
     }
     -> Config a msg
-config { onDrop, htmlTag, attributes, toMsg } =
+config { onDrop, htmlTag, attributes } =
     Config
         { onDrop = onDrop
         , htmlTag = htmlTag
         , attributes = attributes
-        , toMsg = toMsg
         }
 
 

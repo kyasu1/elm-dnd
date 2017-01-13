@@ -12,8 +12,7 @@ Create the `Config` for your `view` and `update` function.
 ```
 import DragDrop
 
-type Msg = SetDragDropState (DragDrop.State Image)
-         | DragDrop Image Image ...
+type Msg = DragDrop Image Image | ...
 
 config : DragDrop.Config Image Msg
 config =
@@ -21,7 +20,6 @@ config =
     { onDrop = DragDrop
     , htmlTag = "img"
     , attributes = (\image -> [("src", image.src)])
-    , toMsg = SetDragDropState
     }
 ```
 
@@ -30,7 +28,6 @@ You provide the following infomation in you configuration:
   - `onDrop` &mdash; send a Msg with your data of dragged and dropped when drop event fired.
   - `htmlTag` &mdash; name of html tag to be rendered, which will be draggable.
   - `attributes` &mdash; list of extra attributes for the draggable element.
-  - `toMsg` &mdash; a way to send new dragDrop state to your app as message.
 
 ### Model
 The model holds list of your data and `State` of DragDrop library.
@@ -58,7 +55,7 @@ type Msg
     | DragDropMsg (DragDrop.Msg Image)
 ```    
   - `DragDrop` &mdash; called when drop event is fired, in the update you need to swap dragged and dropped elements in you model.
-  - `SetDragDropState` &mdash; called when 
+  - `SetDragDropState` &mdash; called when
   - `DragDropMsg` &mdash; map child message from parent to child.
 ### View
 Under construction…
