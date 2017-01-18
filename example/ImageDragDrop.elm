@@ -108,7 +108,7 @@ imageListView model =
 
 
 imageView : Model -> Image -> Html Msg
-imageView { dragDropState } target =
+imageView { dragDropState } image =
     let
         base =
             [ ( "display", "flex" )
@@ -126,15 +126,15 @@ imageView { dragDropState } target =
         dragDropStyle =
             case ( dragDropState.dragging, dragDropState.hovering ) of
                 ( Just dragged, Just hovered ) ->
-                    if target == dragged then
+                    if image == dragged then
                         draggedStyle
-                    else if target == hovered then
+                    else if image == hovered then
                         hoveredStyle
                     else
                         []
 
                 ( Just dragged, Nothing ) ->
-                    if target == dragged then
+                    if image == dragged then
                         draggedStyle
                     else
                         []
@@ -146,9 +146,9 @@ imageView { dragDropState } target =
             base ++ dragDropStyle
     in
         div [ style base ]
-            [ Html.map DragDropMsg (DragDrop.view config style_ target)
+            [ Html.map DragDropMsg (DragDrop.view config style_ image)
             , div []
-                [ text <| "id : " ++ target.id ]
+                [ text <| "id : " ++ image.id ]
             ]
 
 
@@ -158,15 +158,25 @@ config =
         { onDrop = DragDrop
         , htmlTag = "img"
         , attributes = attrHelper
+        , children = childHelper
         }
 
 
-attrHelper : Image -> List ( String, String )
+
+-- attrHelper : Image -> List ( String, String )
+
+
+attrHelper : Image -> List (Attribute msg)
 attrHelper image =
-    [ ( "src", image.src )
-    , ( "width", "150" )
-    , ( "height", "150" )
+    [ src image.src
+    , width 150
+    , height 150
     ]
+
+
+childHelper : Image -> Html msg
+childHelper image =
+    text ""
 
 
 

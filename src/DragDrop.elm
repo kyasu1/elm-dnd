@@ -78,7 +78,8 @@ type Config a msg
     = Config
         { onDrop : a -> a -> msg
         , htmlTag : String
-        , attributes : a -> List ( String, String )
+        , attributes : a -> List (Attribute (Msg a))
+        , children : a -> Html (Msg a)
         }
 
 
@@ -94,25 +95,29 @@ type Config a msg
         { onDrop = DragDrop
         , htmlTag = "img"
         , attributes = (\image -> [("src", image.src)])
+        , children = (\image -> div [] [text image.id])
         }
 
 You provide the following infomation in you configuration:
 
   - `onDrop` &mdash; call back Msg that is called when drop event fired.
   - `htmlTag` &mdash; name of html tag to be draggable
-  - `attributes` &mdash; list of extra attributes for draggable element.
+  - `attributes` &mdash; list of extra attributes for the draggable element.
+  - `children` &mdash; child nodes to be rendered in the draggable element.
 -}
 config :
     { onDrop : a -> a -> msg
     , htmlTag : String
-    , attributes : a -> List ( String, String )
+    , attributes : a -> List (Attribute (Msg a))
+    , children : a -> Html (Msg a)
     }
     -> Config a msg
-config { onDrop, htmlTag, attributes } =
+config { onDrop, htmlTag, attributes, children } =
     Config
         { onDrop = onDrop
         , htmlTag = htmlTag
         , attributes = attributes
+        , children = children
         }
 
 
@@ -154,40 +159,38 @@ update (Config { onDrop }) msg model =
 -- VIEW
 
 
-{-| Take list of css styles and the model.
+{-| Accepts extra list of css styles to dynamicaly change the style and the model.
+TODO: Probably should also accepts extra class for dynamic change.
 -}
 view : Config a msg -> List ( String, String ) -> a -> Html (Msg a)
-view (Config { attributes, htmlTag }) style_ data =
-    let
-        attrs =
-            List.map attrHelper (attributes data)
-    in
-        Html.node htmlTag
-            (List.append
-                [ draggable "true"
-                , onDragStart (DragStart data)
-                , onDrop (Drop data)
-                  -- , onDragOver (DragOver data)
-                  -- a hack for preventing dragover events overwhelm update msg
-                  -- https://medium.com/elm-shorts/html5-drag-and-drop-in-elm-88d149d3558f#.ak3n9ymcc
-                , attribute "ondragover" "return false"
-                , onDragEnter (DragEnter data)
-                , onDragLeave (DragLeave data)
-                , onDragEnd (DragEnd data)
-                , style style_
-                ]
-                attrs
-            )
-            []
-
-
-attrHelper : ( String, String ) -> Attribute msg
-attrHelper ( attr, value ) =
-    Html.Attributes.attribute attr value
+view (Config { attributes, htmlTag, children }) style_ data =
+    Html.node htmlTag
+        (List.append
+            [ draggable "true"
+            , onDragStart (DragStart data)
+              -- a hack to support Firefox
+              --
+            , attribute "ondragstart" "event.dataTransfer.setData(\"text/plain\", \"dummy\")"
+            , onDrop (Drop data)
+              -- , onDragOver (DragOver data)
+              -- a hack for preventing dragover events overwhelm update msg
+              -- https://medium.com/elm-shorts/html5-drag-and-drop-in-elm-88d149d3558f#.ak3n9ymcc
+            , attribute "ondragover" "return false"
+            , onDragEnter (DragEnter data)
+            , onDragLeave (DragLeave data)
+            , onDragEnd (DragEnd data)
+            , style style_
+            ]
+            (attributes data)
+        )
+        [ children data ]
 
 
 
 {-
+   EVENT HANDLERS
+
+   Copied from the next URL
    https://github.com/wintvelt/elm-html5-drag-drop/blob/master/src/DragEvents.elm
 -}
 
