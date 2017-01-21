@@ -1,5 +1,5 @@
 {
-    "version": "0.1.4",
+    "version": "0.1.5",
     "summary": "Elm sorting UI library with drag and drop",
     "repository": "https://github.com/kyasu1/elm-dnd.git",
     "license": "BSD3",
